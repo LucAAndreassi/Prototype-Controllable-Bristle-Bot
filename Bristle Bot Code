@@ -1,0 +1,121 @@
+const int VRx = A0;
+const int VRy = A1;
+const int rLED = 3;
+int mLeft1 = 10; //Left motor analog control
+int mLeft2 = 8; //Left motor ground
+int mRight1 = 11; //Right motor analog control
+int mRight2 = 9; //Right motor ground
+
+int xPosition = 0;
+int yPosition = 0;
+int mapX = 0;
+int mapY = 0;
+const int deadZone = 5;
+
+
+void setup() {
+  Serial.begin(9600);
+ 
+  // initialize digital pin LED_BUILTIN as an output.
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(rLED, OUTPUT);
+  pinMode(VRx, INPUT);
+  pinMode(VRy, INPUT);
+ 
+  pinMode(mLeft1, OUTPUT);
+  pinMode(mLeft2, OUTPUT);
+ 
+  pinMode(mRight1, OUTPUT);
+  pinMode(mRight2, OUTPUT);
+
+}
+
+void loop() {
+  int valx = analogRead(VRx);
+  int valy = analogRead(VRy);
+
+  int xSpeed = map(valx, 0, 1023, -100, 100);
+  int ySpeed = map(valy, 0, 1023, 100, -100);
+ 
+  int xyABS = sqrt(ySpeed*ySpeed + xSpeed*xSpeed);
+  int motorSpeed = xyABS;
+
+  Serial.print("X: ");
+  Serial.print(valx);
+  Serial.print(" Y: ");
+  Serial.print(valy);
+  Serial.print(" M: ");
+  Serial.print(0);
+ 
+  delay(200);
+
+  //forward right
+  if ((ySpeed > deadZone && xSpeed > deadZone))
+  {
+    digitalWrite(rLED, HIGH);   // turn the LED on (HIGH is the voltage level)
+
+    Serial.print(" FR-ySpeed: ");
+    Serial.print(ySpeed);
+    Serial.print(" FR-xSpeed: ");
+    Serial.print(xSpeed);
+    Serial.print(" FR-motorSpeed: ");
+    Serial.print(motorSpeed);
+   
+    analogWrite(mLeft1, motorSpeed - (-1*xSpeed));
+    analogWrite(mLeft2, 0);
+
+    analogWrite(mRight1, 0);
+    analogWrite(mRight2, 0);
+  }
+ 
+  // forward left
+  else if ((ySpeed > deadZone && xSpeed < -deadZone))
+  {
+    digitalWrite(LED_BUILTIN, HIGH);
+    Serial.print(" FL-ySpeed: ");
+    Serial.print(ySpeed);
+    Serial.print(" FL-xSpeed: ");
+    Serial.print(xSpeed);
+    Serial.print(" FL-mtorSpeed: ");
+    Serial.print(motorSpeed);
+    analogWrite(mLeft1, 0);
+    analogWrite(mLeft2, 0);
+
+    analogWrite(mRight1, motorSpeed - xSpeed);
+    analogWrite(mRight2, 0);
+  }
+ 
+  // forward
+  else if ((ySpeed > deadZone && xSpeed > -deadZone && xSpeed < deadZone))
+  {
+    Serial.print(" F-ySpeed: ");
+    Serial.print(ySpeed);
+    Serial.print(" F-xSpeed: ");
+    Serial.print(xSpeed);
+    Serial.print(" F-mtorSpeed: ");
+    Serial.print(motorSpeed);
+   
+    analogWrite(mLeft1, 2*ySpeed);
+    analogWrite(mLeft2, 0);
+
+    analogWrite(mRight1, 2*ySpeed);
+    analogWrite(mRight2, 0);
+  }
+  else
+  {
+    Serial.print(" E-ySpeed: ");
+    Serial.print(ySpeed);
+    Serial.print(" E-xSpeed: ");
+    Serial.print(xSpeed);
+    Serial.print(" E-mtorSpeed: ");
+    Serial.print(motorSpeed);
+    analogWrite(mLeft1, 0);
+    analogWrite(mLeft2, 0);
+    analogWrite(mRight1, 0);
+    analogWrite(mRight2, 0);
+  }
+ 
+  Serial.println("\n");
+  digitalWrite(LED_BUILTIN, LOW);
+  digitalWrite(rLED, LOW);
+}
